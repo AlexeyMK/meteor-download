@@ -56,6 +56,7 @@ rm -r $TEMP_DUMP_LOCATION
 mongodump --username client --host $MONGO_SERVER_HOST --db $MONGO_SERVER_DBNAME --password $MONGO_SERVER_PW --out $TEMP_DUMP_LOCATION
 
 # TODO check exit code
+# TODO - before you mongodump, save existing local DB somewhere as backup
 echo "-----------------------------------------------------------"
 echo "Uploading DB into your local meteor instance"
 echo "-----------------------------------------------------------"
@@ -74,4 +75,5 @@ echo "-----------------------------------------------------------"
 echo "All done, enjoy!"
 echo "-----------------------------------------------------------"
 # TODO ensure exit code is correct
+# TODO kill meteor if we started it (restore to pristine state, etc)
 cd $ORIGINAL_DIR
