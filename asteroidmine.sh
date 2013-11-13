@@ -3,6 +3,12 @@
 
 USAGE="Usage: asteroidmine.sh YOURAPP.meteor.com [local meteor directory, defaults to .]"
 TEMP_DUMP_LOCATION=/tmp/asteroidmine.mongodump
+
+if [ ! $1 ] ; then
+  echo $USAGE
+  exit 1
+fi
+
 # 1. Ensure user has meteor & mongo installed and available in path
 if [ ! $(which meteor) ] ; then
   echo "Meteor is not installed on this computer (or at least it's not in the PATH)"
@@ -43,9 +49,14 @@ echo "(if your deployment has a password, it will be needed here)"
 echo "-----------------------------------------------------------"
 
 METEOR_APP_URL=$1
+TEMPFILE=URL.tmp
 cd $METEOR_PROJECT_DIR
-#MONGO_SERVER_URL=$(meteor mongo --url $METEOR_MONGO_URL)
-#MONGO_SERVER_URL="mongodb://client:THIS-IS-PASSWORD@MONGO-SERVER-URL/DATABASE-URL"
+# HACK: we have to let meteor mongo have stdout to prompt for password so we
+# can't use $(...) and instead tee and tail the result
+#sample server url:mongodb://client:THIS-IS-PASSWORD@MONGO-SERVER-URL/DATABASE-URL
+meteor mongo --url $METEOR_APP_URL | tee $TEMPFILE
+MONGO_SERVER_URL=$(tail -n 1 $TEMPFILE)
+rm $TEMPFILE
 
 # kind of a hacky regex, would love some help.
 MONGO_SERVER_PW=$(echo $MONGO_SERVER_URL | sed "s|mongodb://client:\(.*\)@.*|\1|")
@@ -65,15 +76,22 @@ if [ -n "$(ps ax | grep -e mongod | grep -v grep)" ] ; then
   echo Mongo already running.
 else
   # TODO - more than port 3000
-  echo "starting local version of meteor (needed for database daeamon)"
-  meteor &
+  echo "starting local version of mongo db daemon"
+  # hack: calling mongod directly because meteor is a mess to shut down after
+  ~/.meteor/tools/latest/mongodb/bin/mongod --bind_ip 127.0.0.1 --smallfiles --nohttpinterface --port 3002 --dbpath ./.meteor/local/db &
+  sleep 2 # hack - let mongo load
 fi
 
 mongorestore --db meteor -h localhost --port 3002 --drop $TEMP_DUMP_LOCATION/$MONGO_SERVER_DBNAME/
 
+kill $(jobs -pr)
+sleep 1
+
+# TODO ensure exit code is correct
+#$?             #Return the exit status of the last command.
 echo "-----------------------------------------------------------"
 echo "All done, enjoy!"
 echo "-----------------------------------------------------------"
-# TODO ensure exit code is correct
-# TODO kill meteor if we started it (restore to pristine state, etc)
 cd $ORIGINAL_DIR
+
+
