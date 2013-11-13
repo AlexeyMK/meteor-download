@@ -1,8 +1,8 @@
 #!/bin/bash
 # Download the user's prod db into a local meteor db for testing/etc.
 
-USAGE="Usage: asteroidmine.sh YOURAPP.meteor.com [local meteor directory, defaults to .]"
-TEMP_DUMP_LOCATION=/tmp/asteroidmine.mongodump
+USAGE="Usage: download.sh YOURAPP.meteor.com [local meteor directory, defaults to .]"
+TEMP_DUMP_LOCATION=/tmp/meteor-download.mongodump
 
 if [ ! $1 ] ; then
   echo $USAGE
