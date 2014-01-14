@@ -55,6 +55,13 @@ cd $METEOR_PROJECT_DIR
 # can't use $(...) and instead tee and tail the result
 #sample server url:mongodb://client:THIS-IS-PASSWORD@MONGO-SERVER-URL/DATABASE-URL
 meteor mongo --url $METEOR_APP_URL | tee $TEMPFILE
+
+if [ $PIPESTATUS -ne 0 ] ; then
+  echo "Could not connect to your app's server."
+  echo $USAGE
+  exit 1
+fi
+
 MONGO_SERVER_URL=$(tail -n 1 $TEMPFILE)
 rm $TEMPFILE
 
