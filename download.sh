@@ -65,13 +65,22 @@ fi
 MONGO_SERVER_URL=$(tail -n 1 $TEMPFILE)
 rm $TEMPFILE
 
-# kind of a hacky regex, would love some help.
-MONGO_SERVER_PW=$(echo $MONGO_SERVER_URL | sed "s|mongodb://client:\(.*\)@.*|\1|")
-MONGO_SERVER_HOST=$(echo $MONGO_SERVER_URL| sed "s|.*@\(.*\)/.*|\1|")
-MONGO_SERVER_DBNAME=$(echo $MONGO_SERVER_URL | sed "s|.*/\(.*\)|\1|")
+# regex works (tested) for what meteor.com returns for 0.7.0
+MONGODUMP_ARGUMENTS=$(echo $MONGO_SERVER_URL | sed "s|mongodb://\([a-zA-Z0-9-]*\):\([a-zA-Z0-9-]*\)@\([a-zA-Z0-9\:.-]*\)/\(.*\)|--username \1 --password \2 --host \3 --db \4|")
+
+if [ $? -ne 0 ] ; then
+  echo "Failed to parse Mongodump results, please take a look at the script (it may be outdated)"
+  exit 1
+fi
 
 rm -r $TEMP_DUMP_LOCATION
-mongodump --username client --host $MONGO_SERVER_HOST --db $MONGO_SERVER_DBNAME --password $MONGO_SERVER_PW --out $TEMP_DUMP_LOCATION
+mongodump $MONGODUMP_ARGUMENTS
+
+if [ $? -ne 0 ] ; then
+  echo "Mongodump Failed!"
+  echo $USAGE
+  exit 1
+fi
 
 # TODO check exit code
 # TODO - before you mongodump, save existing local DB somewhere as backup
