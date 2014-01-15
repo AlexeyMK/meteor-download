@@ -43,7 +43,7 @@ if [ ! -d $METEOR_PROJECT_DIR/.meteor ] ; then
   echo $USAGE
   exit 1
 elif [ ! -d $METEOR_PROJECT_DIR/$METEOR_LOCAL_DB ] ; then
-  echo "The databasee for $METEOR_PROJECT_DIR hasn't been initialized yet.  Initialize the database (by running 'meteor' or the equivalent) and then re-run this script"
+  echo "The database for $METEOR_PROJECT_DIR hasn't been initialized yet.  Initialize the database (by running 'meteor' or the equivalent) and then re-run this script"
   exit 1
 fi
 
@@ -57,7 +57,6 @@ TEMPFILE=URL.tmp
 cd $METEOR_PROJECT_DIR
 # HACK: we have to let meteor mongo have stdout to prompt for password so we
 # can't use $(...) and instead tee and tail the result
-#sample server url:mongodb://client:THIS-IS-PASSWORD@MONGO-SERVER-URL/DATABASE-URL
 meteor mongo --url $METEOR_APP_URL | tee $TEMPFILE
 
 if [ $PIPESTATUS -ne 0 ] ; then
@@ -70,10 +69,12 @@ MONGO_SERVER_URL=$(tail -n 1 $TEMPFILE)
 rm $TEMPFILE
 
 # regex works (tested) for what meteor.com returns for 0.7.0
+# sample server url:mongodb://client:THIS-IS-PASSWORD@MONGO-SERVER-URL/DATABASE-URL
+# for python version of similar tool: http://pydanny.com/parsing-mongodb-uri.html
 MONGODUMP_ARGUMENTS=$(echo $MONGO_SERVER_URL | sed "s|mongodb://\([a-zA-Z0-9-]*\):\([a-zA-Z0-9-]*\)@\([a-zA-Z0-9\:.-]*\)/\(.*\)|--username \1 --password \2 --host \3 --db \4|")
 
 if [ $? -ne 0 ] ; then
-  echo "Failed to parse Mongodump results, please take a look at the script (it may be outdated)"
+  echo "Failed to parse mongodump results, please take a look at this script (it may be outdated)"
   exit 1
 fi
 
@@ -86,7 +87,6 @@ if [ $? -ne 0 ] ; then
   exit 1
 fi
 
-# TODO check exit code
 # TODO - before you mongodump, save existing local DB somewhere as backup
 echo "-----------------------------------------------------------"
 echo "Uploading DB into your local meteor instance"
@@ -113,5 +113,3 @@ echo "-----------------------------------------------------------"
 echo "All done, enjoy!"
 echo "-----------------------------------------------------------"
 cd $ORIGINAL_DIR
-
-
