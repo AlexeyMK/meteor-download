@@ -79,7 +79,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 rm -r $TEMP_DUMP_LOCATION
-mongodump $MONGODUMP_ARGUMENTS
+mongodump $MONGODUMP_ARGUMENTS --out $TEMP_DUMP_LOCATION
 
 if [ $? -ne 0 ] ; then
   echo "Mongodump Failed!"
@@ -102,7 +102,9 @@ else
   sleep 2 # hack - let mongo load
 fi
 
-mongorestore --db meteor -h localhost --port 3002 --drop $TEMP_DUMP_LOCATION/$MONGO_SERVER_DBNAME/
+# see http://stackoverflow.com/questions/3162385/how-to-split-a-string-in-shell-and-get-the-last-field
+MONGO_SERVER_DBNAME=${MONGODUMP_ARGUMENTS##* }
+mongorestore --db meteor -host localhost --port 3002 --drop $TEMP_DUMP_LOCATION/$MONGO_SERVER_DBNAME
 
 kill $(jobs -pr)
 sleep 1
