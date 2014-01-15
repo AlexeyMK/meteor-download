@@ -33,6 +33,7 @@ fi
 # 2. Ensure project exists in proper directory
 ORIGINAL_DIR=$(pwd)
 METEOR_PROJECT_DIR=$(pwd)
+METEOR_LOCAL_DB=.meteor/local/db
 if [ $2 ] ; then
   METEOR_PROJECT_DIR=$2
 fi
@@ -40,6 +41,9 @@ fi
 if [ ! -d $METEOR_PROJECT_DIR/.meteor ] ; then
   echo "$METEOR_PROJECT_DIR doesn't seem to have a valid Meteor project"
   echo $USAGE
+  exit 1
+elif [ ! -d $METEOR_PROJECT_DIR/$METEOR_LOCAL_DB ] ; then
+  echo "The databasee for $METEOR_PROJECT_DIR hasn't been initialized yet.  Initialize the database (by running 'meteor' or the equivalent) and then re-run this script"
   exit 1
 fi
 
@@ -94,7 +98,7 @@ else
   # TODO - more than port 3000
   echo "starting local version of mongo db daemon"
   # hack: calling mongod directly because meteor is a mess to shut down after
-  ~/.meteor/tools/latest/mongodb/bin/mongod --bind_ip 127.0.0.1 --smallfiles --nohttpinterface --port 3002 --dbpath ./.meteor/local/db &
+  ~/.meteor/tools/latest/mongodb/bin/mongod --bind_ip 127.0.0.1 --smallfiles --nohttpinterface --port 3002 --dbpath ./$METEOR_LOCAL_DB &
   sleep 2 # hack - let mongo load
 fi
 
